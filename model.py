@@ -105,10 +105,9 @@ class DecoderBlock(nn.Module):
         self.feed_forward_block = feed_forward_block
         self.residual_connections = nn.ModuleList([ResidualConnection(num_features, dropout) for _ in range(3)])
 
-    def forward(self, X, encoder_output, src_mask, trgt_mask):
-
-        X = self.residual_connections[0](X, lambda X: self.self_attention_block(X, X, X, trgt_mask)) # receives decoder input (trgt lang in this case as input)
-        X = self.residual_connections[1](X, lambda X: self.cross_attention_block(X, encoder_output, encoder_output, src_mask)) # cross because encoder output + X from decoder as input
+    def forward(self, X, mask):
+        # here
+        X = self.residual_connections[0](X, lambda X: self.self_attention_block(X, X, X, mask)) # receives decoder input (trgt lang in this case as input)
         X = self.residual_connections[2](X, self.feed_forward_block)
         
         return X
