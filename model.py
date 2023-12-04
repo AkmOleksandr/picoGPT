@@ -18,6 +18,7 @@ class PositionalEncoding(nn.Module):
         self.d_model = d_model
         self.seq_len = seq_len
         self.dropout = nn.Dropout(dropout)
+        
         PE = torch.zeros(seq_len, d_model) # every row will be an embedding of a single unit is in which units came in sentence
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
@@ -97,32 +98,27 @@ class MultiHeadAttentionBlock(nn.Module):
         return (attention_scores @ V)
     
 class DecoderBlock(nn.Module):
-    def __init__(self, num_features, self_attention_block, cross_attention_block, feed_forward_block, dropout):
+    def __init__(self, num_features, self_attention_block, feed_forward_block, dropout):
         super().__init__()
-
         self.self_attention_block = self_attention_block
-        self.cross_attention_block = cross_attention_block
         self.feed_forward_block = feed_forward_block
-        self.residual_connections = nn.ModuleList([ResidualConnection(num_features, dropout) for _ in range(3)])
+        self.residual_connections = nn.ModuleList([ResidualConnection(num_features, dropout) for _ in range(2)])
 
     def forward(self, X, mask):
-        # here
-        X = self.residual_connections[0](X, lambda X: self.self_attention_block(X, X, X, mask)) # receives decoder input (trgt lang in this case as input)
-        X = self.residual_connections[2](X, self.feed_forward_block)
-        
+        X = self.residual_connections[0](X, lambda X: self.self_attention_block(X, X, X, mask))
+        X = self.residual_connections[1](X, self.feed_forward_block)
         return X
 
 class Decoder(nn.Module):
     def __init__(self, num_features, layers):
         super().__init__()
-
         self.layers = layers
         self.norm = LayerNormalization(num_features)
 
-    def forward(self, X, encoder_output, src_mask, trgt_mask):
+    def forward(self, X, mask):
 
         for layer in self.layers:
-            X = layer(X, encoder_output, src_mask, trgt_mask) # pass through all layers (N Encoder Blocks)
+            X = layer(X, mask)
 
         return self.norm(X)
     
@@ -132,28 +128,24 @@ class ProjectionLayer(nn.Module): # maps embedding with positions in vocabulary
         self.proj = nn.Linear(d_model, vocab_size)
 
     def forward(self, X):
-        
         return self.proj(X) # (batch, seq_len, d_model) --> (batch, seq_len, vocab_size)
     
 
 class Transformer(nn.Module):
-    def __init__(self, decoder: Decoder, src_embed: InputEmbeddings, trgt_embed: InputEmbeddings, src_pos: PositionalEncoding, trgt_pos: PositionalEncoding, projection_layer: ProjectionLayer):
+    def __init__(self, decoder: Decoder, embed: InputEmbeddings, pos: PositionalEncoding, projection_layer: ProjectionLayer):
         super().__init__()
         self.decoder = decoder
-        self.src_embed = src_embed
-        self.trgt_embed = trgt_embed
-        self.src_pos = src_pos
-        self.trgt_pos = trgt_pos
+        self.embed = embed
+        self.pos = pos
         self.projection_layer = projection_layer
 
     # Every sentence is a single batch, which is a matrix of seq_len (max length of sentence) x d_model (embedding size)
 
-    
-    def decode(self, encoder_output, src_mask, trgt, trgt_mask): # replace encoder_output and remove trgt/src
+    def decode(self, X, mask):
         # (batch, seq_len, d_model)
-        trgt = self.trgt_embed(trgt)
-        trgt = self.trgt_pos(trgt)
-        return self.decoder(trgt, encoder_output, src_mask, trgt_mask)
+        embeds = self.embed(X)
+        decoder_input = self.pos(embeds)
+        return self.decoder(decoder_input, mask)
     
     def project(self, X):
         # (batch, seq_len, vocab_size)

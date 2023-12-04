@@ -11,11 +11,11 @@ def get_config():
         "lr": 10**-4,
         "seq_len": 350,
         "d_model": 512,
-        "dataset_path": "quotes-dataset",
+        "dataset_path": "dataset",
         "model_folder": "weights",
-        "model_basename": "qmodel_",
+        "model_basename": "lmodel_",
         "preload": "latest",
-        "tokenizer_file": "tokenizer_{0}.json",
+        "tokenizer_file": "tokenizer.json",
     }
 
 def get_weights_file_path(config, epoch: str):
