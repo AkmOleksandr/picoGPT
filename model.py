@@ -89,8 +89,8 @@ class MultiHeadAttentionBlock(nn.Module):
         attention_scores = (Q @ K.transpose(-2, -1)) / math.sqrt(d_k) # formula for attention
 
         if mask is not None:
-            attention_scores.masked_fill_(mask == 0, -1e9) # masked_fill_ method in PyTorch that replaces elements in the input tensor (attention_scores in this case) with a specified value where the corresponding element in the mask tensor is 0 (mask either hides padding or padding and next words)
-        attention_scores = attention_scores.softmax(dim=-1)
+            attention_scores.masked_fill_(mask == 0, -1e9) # fills locations with -1e9 (will be 0s after softmax) where input mask equals to 0, masked_fill_ method in PyTorch that replaces elements in the input tensor (attention_scores in this case) with a specified value where the corresponding element in the mask tensor is 0 (mask either hides padding or padding and next words)
+        attention_scores = attention_scores.softmax(dim=-1) # apply softmax
 
         if dropout is not None:
             attention_scores = dropout(attention_scores)
@@ -130,7 +130,6 @@ class ProjectionLayer(nn.Module): # maps embedding with positions in vocabulary
     def forward(self, X):
         return self.proj(X) # (batch, seq_len, d_model) --> (batch, seq_len, vocab_size)
     
-
 class Transformer(nn.Module):
     def __init__(self, decoder: Decoder, embed: InputEmbeddings, pos: PositionalEncoding, projection_layer: ProjectionLayer):
         super().__init__()
