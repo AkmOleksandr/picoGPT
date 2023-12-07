@@ -55,15 +55,15 @@ class ResidualConnection(nn.Module): # connecter
     def forward(self, X, sublayer):
         return X + self.dropout(sublayer(self.norm(X))) # combines embedding matrix with normalized embedding matrix
     
-class FeedForwardBlock(nn.Module): # copmletely optional architecture
-    def __init__(self, d_model, d_ff, dropout):
+class FeedForwardBlock(nn.Module):
+    def __init__(self, d_model, dropout):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Linear(nn.Linear(d_model, d_ff)),
+            nn.Linear(nn.Linear(d_model, d_model * 4)),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(d_ff, d_model)
+            nn.Linear(d_model * 4, d_model)
         )
 
     def forward(self, X):
