@@ -34,13 +34,11 @@ class PositionalEncoding(nn.Module):
 class LayerNormalization(nn.Module): # normalize 
     def __init__(self, num_features, eps=1e-6):
         super().__init__()
-
         self.eps = eps
         self.alpha = nn.Parameter(torch.ones(num_features))
         self.bias = nn.Parameter(torch.zeros(num_features))
 
     def forward(self, X):
-
         mean = X.mean(dim=-1, keepdim=True)
         std = X.std(dim=-1, keepdim=True)
 
@@ -58,7 +56,6 @@ class ResidualConnection(nn.Module): # connecter
 class FeedForwardBlock(nn.Module):
     def __init__(self, d_model, dropout):
         super().__init__()
-
         self.net = nn.Sequential(
             nn.Linear(nn.Linear(d_model, d_model * 4)),
             nn.ReLU(),
@@ -87,9 +84,7 @@ class MultiHeadAttentionBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def attention(Q, K, V, mask, dropout):
-
         d_k = Q.shape[-1]
-
         attention_scores = (Q @ K.transpose(-2, -1)) / math.sqrt(d_k)
 
         if mask is not None:
@@ -153,3 +148,27 @@ class Transformer(nn.Module):
     def project(self, X):
         # (batch, seq_len, vocab_size)
         return self.projection_layer(X)
+    
+def build_transformer(vocab_size, seq_len, d_model=512, N=6, h=8, dropout=0.1, d_ff=2048) -> Transformer:
+
+    embed = InputEmbeddings(d_model, vocab_size)
+    pos = PositionalEncoding(d_model, seq_len, dropout)
+
+    decoder_blocks = []
+    for _ in range(N):
+        decoder_self_attention_block = MultiHeadAttentionBlock(d_model, h, dropout)
+        feed_forward_block = FeedForwardBlock(d_model, d_ff, dropout)
+        decoder_block = DecoderBlock(d_model, decoder_self_attention_block, feed_forward_block, dropout)
+        decoder_blocks.append(decoder_block)
+    
+    decoder = Decoder(d_model, nn.ModuleList(decoder_blocks))
+    
+    projection_layer = ProjectionLayer(d_model, vocab_size)
+    
+    transformer = Transformer(decoder, embed, pos, projection_layer)
+    
+    # Initialize parameters
+    for p in transformer.parameters():
+        if p.dim() > 1:
+            nn.init.xavier_uniform_(p)
+    return transformer
