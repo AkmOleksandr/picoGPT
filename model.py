@@ -90,7 +90,7 @@ class MultiHeadAttentionBlock(nn.Module):
 
         d_k = Q.shape[-1]
 
-        attention_scores = (Q @ K.transpose(-2, -1)) / math.sqrt(d_k) # formula for attention
+        attention_scores = (Q @ K.transpose(-2, -1)) / math.sqrt(d_k)
 
         if mask is not None:
             attention_scores.masked_fill_(mask == 0, -1e9) # fills locations with -1e9 (will be 0s after softmax) where input mask equals to 0, masked_fill_ method in PyTorch that replaces elements in the input tensor (attention_scores in this case) with a specified value where the corresponding element in the mask tensor is 0 (mask either hides padding or padding and next words)
