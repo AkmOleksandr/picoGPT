@@ -1,4 +1,3 @@
-
 from model import build_transformer
 from dataset import Dataset, causal_mask
 from config import get_config, get_weights_file_path, latest_weights_file_path
@@ -100,7 +99,7 @@ def train_model(config):
 
             label = batch['label'].to(device)
 
-            loss = loss_fn(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1)) 
+            loss = loss_fn(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1))
 
             batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
 
@@ -125,43 +124,70 @@ def train_model(config):
             'global_step': global_step
         }, model_filename)
 
-def run_validation(model, validation_ds, tokenizer_src, tokenizer_trgt, max_len, device, print_msg, num_examples=2):
-    # here
+@ torch.no_grad()
+def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, num_examples=5):
     model.eval()
     count = 0
-
+    losses = []
+    # Get the console window width
     try:
-        # get the console window width
         with os.popen('stty size', 'r') as console:
             _, console_width = console.read().split()
             console_width = int(console_width)
     except:
-        # if we can't get the console width, use 80 as default
         console_width = 80
 
-    with torch.no_grad():
-        for batch in validation_ds: # for every batch
-            count += 1
-            encoder_input = batch["encoder_input"].to(device) # encoder input for a batch=1, 1 tokenied sentence
-            encoder_mask = batch["encoder_mask"].to(device) # mask fir the encoder
+    for batch in validation_ds:
+        count += 1
 
-            # check that the batch size is 1
-            assert encoder_input.size(
-                0) == 1, "Batch size must be 1 for validation"
+        decoder_input = batch['decoder_input'].to(device) 
+        mask = batch['mask'].to(device)
 
-            model_out = greedy_decode(model, encoder_input, encoder_mask, tokenizer_src, tokenizer_trgt, max_len, device) # prediction of the sentence in tokens
+        decoder_output = model.decode(decoder_input, mask)
+        proj_output = model.project(decoder_output) 
 
-            source_text = batch["src_text"][0] # original source sentence
-            target_text = batch["trgt_text"][0] # original target sentence
-            model_out_text = tokenizer_trgt.decode(model_out.detach().cpu().numpy()) # prediction of the model about target sentence
-            
-            # Print the source, target and model output
+        label = batch['label'].to(device)
+
+        loss = nn.CrossEntropyLoss(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1))
+
+        assert decoder_input.size(0) == 1, "Batch size must be 1 for validation"
+
+        loss = nn.CrossEntropyLoss(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1))
+        losses.append(loss)
+
+        model_out = greedy_decode(model, tokenizer, seq_len, device) # prediction of the sentence in tokens
+
+        model_out_text = tokenizer.decode(model_out.detach().cpu().numpy()) # prediction of the model about target sentence
+        
+        print_msg('-'*console_width)
+        print_msg(f"{f'Model says: ':>12}{model_out_text}")
+
+        if count == num_examples: # how many examples to show during validation (*by eye*, metrics could be added)
             print_msg('-'*console_width)
-            print_msg(f"{f'SOURCE: ':>12}{source_text}")
-            print_msg(f"{f'TARGET: ':>12}{target_text}")
-            print_msg(f"{f'PREDICTED: ':>12}{model_out_text}")
+            break
+    print_msg("Average validation loss:", torch.mean(losses))
+    print_msg("Standard deviation of the validation loss:", torch.std(losses))
 
-            if count == num_examples: # how many examples to show during validation (*by eye*, metrics could be added)
-                print_msg('-'*console_width)
-                break
+def greedy_decode(model, mask, tokenizer, seq_len, device): # loads model, encoder_input, encoder_mask, tokenizer of source lang, tokenizer of trgt lang, max_len of sentence, device
 
+    sos_idx = tokenizer.token_to_id('[SOS]') # create <SOS> token
+    eos_idx = tokenizer.token_to_id('[EOS]') # create <EOS> token
+
+    decoder_input = torch.empty(1, 1).fill_(sos_idx).to(device) # initialize the decoder input with <SOS>
+
+    while decoder_input.size(1) < seq_len: # until decoder_input size is less than seq_len
+
+        decoder_mask = causal_mask(decoder_input.size(1)).type_as(mask).to(device)
+    
+        out = model.decode(mask, decoder_input, decoder_mask) # reuse 
+
+        probs = model.project(out[:, -1]) # probabilities of the next token
+        
+        _, next_word = torch.max(probs, dim=1) # get the token with max prob
+
+        decoder_input = torch.cat([decoder_input, torch.empty(1, 1).fill_(next_word.item()).to(device)], dim=1) # append next_word (the predicted word) to decoder_input
+
+        if next_word == eos_idx: # if next token is <EOS> break
+            break
+
+    return decoder_input.squeeze(0)
