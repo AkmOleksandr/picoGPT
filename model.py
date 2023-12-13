@@ -87,9 +87,12 @@ class MultiHeadAttentionBlock(nn.Module):
         d_k = Q.shape[-1]
         attention_scores = (Q @ K.transpose(-2, -1)) / math.sqrt(d_k)
 
-        if mask is not None:
-            attention_scores.masked_fill_(mask == 0, -1e9) # fills locations with -1e9 (will be 0s after softmax) where input mask equals to 0, masked_fill_ method in PyTorch that replaces elements in the input tensor (attention_scores in this case) with a specified value where the corresponding element in the mask tensor is 0 (mask either hides padding or padding and next words)
-        attention_scores = attention_scores.softmax(dim=-1) # apply softmax
+        if mask:
+            size = attention_scores.size(-1) # extract dimension of features
+            lower_triangular_matrix = torch.tril(torch.ones((1, size, size))).type(torch.int)
+            attention_scores.masked_fill_(lower_triangular_matrix == 0, -1e9) # fills upper triangle with -1e9 (to make them 0s after softmax) 
+        
+        attention_scores = attention_scores.softmax(dim=-1)
 
         if dropout is not None:
             attention_scores = dropout(attention_scores)
@@ -103,8 +106,8 @@ class DecoderBlock(nn.Module):
         self.feed_forward_block = feed_forward_block
         self.residual_connections = nn.ModuleList([ResidualConnection(num_features, dropout) for _ in range(2)])
 
-    def forward(self, X, mask):
-        X = self.residual_connections[0](X, lambda X: self.self_attention_block(X, X, X, mask))
+    def forward(self, X):
+        X = self.residual_connections[0](X, lambda X: self.self_attention_block(X, X, X, mask=True))
         X = self.residual_connections[1](X, self.feed_forward_block)
         return X
 
@@ -114,11 +117,9 @@ class Decoder(nn.Module):
         self.layers = layers
         self.norm = LayerNormalization(num_features)
 
-    def forward(self, X, mask):
-
+    def forward(self, X):
         for layer in self.layers:
-            X = layer(X, mask)
-
+            X = layer(X)
         return self.norm(X)
     
 class ProjectionLayer(nn.Module): # maps embedding with positions in vocabulary
@@ -138,12 +139,11 @@ class Transformer(nn.Module):
         self.projection_layer = projection_layer
 
     # Every sentence is a single batch, which is a matrix of seq_len (max length of sentence) x d_model (embedding size)
-
-    def decode(self, X, mask):
+    def decode(self, X):
         # (batch, seq_len, d_model)
         embeds = self.embed(X)
         decoder_input = self.pos(embeds)
-        return self.decoder(decoder_input, mask)
+        return self.decoder(decoder_input)
     
     def project(self, X):
         # (batch, seq_len, vocab_size)
