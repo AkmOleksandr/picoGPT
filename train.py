@@ -123,6 +123,8 @@ def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, 
     model.eval()
     count = 0
     losses = []
+    loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer.token_to_id("[PAD]"), label_smoothing=0.1).to(device)
+    
     # Get the console window width
     try:
         with os.popen("stty size", "r") as console:
@@ -133,46 +135,40 @@ def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, 
 
     for batch in validation_ds:
         count += 1
-
         decoder_input = batch['decoder_input'].to(device) 
-        mask = batch["mask"].to(device)
 
-        decoder_output = model.decode(decoder_input, mask)
-        proj_output = model.project(decoder_output) 
+        decoder_output = model.decode(decoder_input)
+        proj_output = model.project(decoder_output) # (batch_size, seq_len, vocab_size) every batch is a matrix with probability distribution of every word being at that position as a row and the vocabulary size as the number of columns
 
-        label = batch["label"].to(device)
+        label = batch["label"].to(device) # (batch_size, seq_len) every batch is a vector of tokens for every position in seq_len
 
-        loss = nn.CrossEntropyLoss(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1))
-
-        assert decoder_input.size(0) == 1, "Batch size must be 1 for validation"
-
-        loss = nn.CrossEntropyLoss(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1))
+        loss = loss_fn(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1))
         losses.append(loss)
 
         model_out = greedy_decode(model, tokenizer, seq_len, device) # prediction of the sentence in tokens
 
-        model_out_text = tokenizer.decode(model_out.detach().cpu().numpy()) # prediction of the model about target sentence
+        model_out_text = tokenizer.decode(model_out.detach().cpu().numpy()) # prediction of the model in words
         
         print_msg("-"*console_width)
         print_msg(f"{f'Model says: ':>12}{model_out_text}")
 
-        if count == num_examples: # how many examples to show during validation (*by eye*, metrics could be added)
+        if count == num_examples:
             print_msg("-"*console_width)
             break
 
     print_msg("Average validation loss:", torch.mean(losses))
     print_msg("Standard deviation of the validation loss:", torch.std(losses))
 
-def greedy_decode(model, mask, tokenizer, seq_len, device): # loads model, encoder_input, encoder_mask, tokenizer of source lang, tokenizer of trgt lang, max_len of sentence, device
+def greedy_decode(model, tokenizer, seq_len, device):
 
-    sos_idx = tokenizer.token_to_id("[SOS]") # create <SOS> token
-    eos_idx = tokenizer.token_to_id("[EOS]") # create <EOS> token
+    sos_idx = tokenizer.token_to_id("[SOS]") # get <SOS> token
+    eos_idx = tokenizer.token_to_id("[EOS]") # get <EOS> token
 
     decoder_input = torch.empty(1, 1).fill_(sos_idx).to(device) # initialize the decoder input with <SOS>
 
     while decoder_input.size(1) < seq_len:
     
-        out = model.decode(decoder_input) # reuse 
+        out = model.decode(decoder_input)
 
         probs = model.project(out[:, -1]) # probabilities of the next token
         
