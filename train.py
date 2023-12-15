@@ -4,7 +4,7 @@ from dataset import LLMDataset
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
 import warnings
 from tqdm import tqdm
@@ -18,6 +18,11 @@ from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
 from itertools import islice
 
+def get_data_points(config, dataset, split):
+    if split != "train" and split != "valid":
+        raise ValueError("Invalid split value. Use 'train' or 'valid'.")
+    return [item["text"] for item in islice(dataset, config[f'limit_{split}_instances']) if item["source"] == f"s2ag/{split}"]
+
 def get_or_build_tokenizer(config, dataset):
     tokenizer_path = Path(config['tokenizer_file'])
     if not Path.exists(tokenizer_path):
@@ -25,21 +30,20 @@ def get_or_build_tokenizer(config, dataset):
         tokenizer.pre_tokenizer = Whitespace()
         trainer = BpeTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         
-        sentences = [item["text"] for item in islice(dataset, config['limit_training_instances']) if item["source"] == "s2ag/train"]
-        tokenizer.train_from_iterator(sentences, trainer=trainer)
+        data_points = get_data_points(dataset, "train")
+        tokenizer.train_from_iterator(data_points, trainer=trainer)
     else:
         tokenizer = Tokenizer.from_file(str(tokenizer_path))
     return tokenizer
 
 def get_data(config):
-
     train_dataset = load_dataset(config['dataset_name'], split="train", streaming=True)
     valid_dataset = load_dataset(config['dataset_name'], split="validation", streaming=True)
 
     tokenizer = get_or_build_tokenizer(train_dataset)
 
-    train_ds_obj = LLMDataset(train_dataset, tokenizer, config['seq_len'])
-    valid_ds_obj = LLMDataset(valid_dataset, tokenizer, config['seq_len'])
+    train_ds_obj = LLMDataset(get_data_points(train_dataset, "train"), tokenizer, config['seq_len'])
+    valid_ds_obj = LLMDataset(get_data_points(valid_dataset, "valid"), tokenizer, config['seq_len'])
    
     train_dataloader = DataLoader(train_ds_obj, batch_size=config['batch_size'], shuffle=True)
     valid_dataloader = DataLoader(valid_ds_obj, batch_size=1, shuffle=True)
@@ -85,10 +89,9 @@ def train_model(config):
 
         for batch in batch_iterator:
 
-            decoder_input = batch["decoder_input"].to(device) 
-            mask = batch["mask"].to(device)
+            decoder_input = batch["decoder_input"].to(device)
 
-            decoder_output = model.decode(decoder_input, mask)
+            decoder_output = model.decode(decoder_input)
             proj_output = model.project(decoder_output) 
 
             label = batch["label"].to(device)
@@ -97,7 +100,7 @@ def train_model(config):
 
             batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
 
-            loss.backward()
+            loss.backward() # teaching model to predict next word at every position by minimizing the loss between data distribution across vocab_size of current token with the actual one-hot encoded label of the next token
 
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
@@ -124,7 +127,7 @@ def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, 
     count = 0
     losses = []
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer.token_to_id("[PAD]"), label_smoothing=0.1).to(device)
-    
+
     # Get the console window width
     try:
         with os.popen("stty size", "r") as console:
