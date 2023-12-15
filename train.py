@@ -1,6 +1,6 @@
 from model import build_transformer
 from config import get_config, get_weights_file_path, latest_weights_file_path
-from dataset import LLMDataset
+from dataset import LLMDataset, get_sequences
 
 import torch
 import torch.nn as nn
@@ -16,12 +16,6 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
-from itertools import islice
-
-def get_data_points(config, dataset, split):
-    if split != "train" and split != "valid":
-        raise ValueError("Invalid split value. Use 'train' or 'valid'.")
-    return [item["text"] for item in islice(dataset, config[f'limit_{split}_instances']) if item["source"] == f"s2ag/{split}"]
 
 def get_or_build_tokenizer(config, dataset):
     tokenizer_path = Path(config['tokenizer_file'])
@@ -30,8 +24,8 @@ def get_or_build_tokenizer(config, dataset):
         tokenizer.pre_tokenizer = Whitespace()
         trainer = BpeTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         
-        data_points = get_data_points(dataset, "train")
-        tokenizer.train_from_iterator(data_points, trainer=trainer)
+        sequences = get_sequences(dataset, "train", config['chunk_size'])
+        tokenizer.train_from_iterator(sequences, trainer=trainer)
     else:
         tokenizer = Tokenizer.from_file(str(tokenizer_path))
     return tokenizer
@@ -42,8 +36,8 @@ def get_data(config):
 
     tokenizer = get_or_build_tokenizer(train_dataset)
 
-    train_ds_obj = LLMDataset(get_data_points(train_dataset, "train"), tokenizer, config['seq_len'])
-    valid_ds_obj = LLMDataset(get_data_points(valid_dataset, "valid"), tokenizer, config['seq_len'])
+    train_ds_obj = LLMDataset(get_sequences(train_dataset, "train", config['chunk_size']), tokenizer, config['seq_len'])
+    valid_ds_obj = LLMDataset(get_sequences(valid_dataset, "valid", config['chunk_size']), tokenizer, config['seq_len'])
    
     train_dataloader = DataLoader(train_ds_obj, batch_size=config['batch_size'], shuffle=True)
     valid_dataloader = DataLoader(valid_ds_obj, batch_size=1, shuffle=True)
@@ -183,3 +177,8 @@ def greedy_decode(model, tokenizer, seq_len, device):
             break
 
     return decoder_input.squeeze(0)
+
+if __name__ == '__main__':
+    warnings.filterwarnings("ignore")
+    config = get_config()
+    train_model(config)
