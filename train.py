@@ -24,7 +24,7 @@ def get_or_build_tokenizer(config, dataset):
         tokenizer.pre_tokenizer = Whitespace()
         trainer = BpeTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         
-        sequences = get_sequences(dataset, "train", config['chunk_size'])
+        sequences = get_sequences(dataset, "train", config['limit_train_instances'], config['chunk_size'])
         tokenizer.train_from_iterator(sequences, trainer=trainer)
     else:
         tokenizer = Tokenizer.from_file(str(tokenizer_path))
@@ -36,8 +36,12 @@ def get_data(config):
 
     tokenizer = get_or_build_tokenizer(train_dataset)
 
-    train_ds_obj = LLMDataset(get_sequences(train_dataset, "train", config['chunk_size']), tokenizer, config['seq_len'])
-    valid_ds_obj = LLMDataset(get_sequences(valid_dataset, "valid", config['chunk_size']), tokenizer, config['seq_len'])
+    # Extract independent sequences given limitations
+    train_sequences = get_sequences(train_dataset, "train", config['limit_train_instances'], config['chunk_size'])
+    valid_sequences = get_sequences(valid_dataset, "valid", config['limit_valid_instances'], config['chunk_size'])
+
+    train_ds_obj = LLMDataset(train_sequences, tokenizer, config['seq_len'])
+    valid_ds_obj = LLMDataset(valid_sequences, tokenizer, config['seq_len'])
    
     train_dataloader = DataLoader(train_ds_obj, batch_size=config['batch_size'], shuffle=True)
     valid_dataloader = DataLoader(valid_ds_obj, batch_size=1, shuffle=True)

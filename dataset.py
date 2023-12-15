@@ -1,7 +1,3 @@
-"""
-When you use an instance of your class in a context that expects indexing or iteration,
-Python automatically calls the __getitem__ method on that instance
-"""
 from itertools import islice
 import re
 import torch
@@ -67,19 +63,19 @@ class LLMDataset(Dataset):
     
 # Handle data due to computational and memory constraints
 
-def get_sequences(dataset, split, chunk_size): # get a list of tokenization-ready independent sequenecs
+def get_sequences(dataset, split, limit_instances, chunk_size): # get a list of tokenization-ready independent sequenecs
     all_chunks = []
-    original_sequences = _get_original_sequences(dataset, split)
+    original_sequences = _get_original_sequences(dataset, split, limit_instances)
     # Iterate over original sequences and split them into chunks
     for sequence in original_sequences:
         chunks = _create_text_chunks(sequence, chunk_size)
         all_chunks.extend(chunks)
     return all_chunks
 
-def _get_original_sequences(dataset, split):
+def _get_original_sequences(dataset, split, limit_instances):
     if split != "train" and split != "valid":
         raise ValueError("Invalid split value. Use 'train' or 'valid'.")
-    return [item["text"] for item in islice(dataset, 5) if item["source"] == f"s2ag/{split}"]
+    return [item["text"] for item in islice(dataset, limit_instances) if item["source"] == f"s2ag/{split}"]
 
 def _create_text_chunks(text, chunk_size):
     # Split the text into sentences
