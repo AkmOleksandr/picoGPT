@@ -166,7 +166,7 @@ def greedy_decode(model, tokenizer, seq_len, device):
     sos_idx = tokenizer.token_to_id("[SOS]") # get <SOS> token
     eos_idx = tokenizer.token_to_id("[EOS]") # get <EOS> token
 
-    decoder_input = torch.empty(1, 1).fill_(sos_idx).to(device) # initialize the decoder input with <SOS>
+    decoder_input = torch.empty(1, 1).fill_(sos_idx).long().to(device) # initialize the decoder input with <SOS>
 
     while decoder_input.size(1) < seq_len:
     
