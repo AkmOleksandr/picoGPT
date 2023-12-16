@@ -26,6 +26,7 @@ def get_or_build_tokenizer(config, dataset):
         
         sequences = get_sequences(dataset, "train", config['limit_train_instances'], config['chunk_size'])
         tokenizer.train_from_iterator(sequences, trainer=trainer)
+        tokenizer.save(str(tokenizer_path))
     else:
         tokenizer = Tokenizer.from_file(str(tokenizer_path))
     return tokenizer
