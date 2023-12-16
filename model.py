@@ -122,7 +122,7 @@ class DecoderBlock(nn.Module):
         self.residual_connections = nn.ModuleList([ResidualConnection(num_features, dropout) for _ in range(2)])
 
     def forward(self, X):
-        X = self.residual_connections[0](X, lambda X: self.multi_attention_block(X, X, X, True, 0.1))
+        X = self.residual_connections[0](X, lambda X: self.multi_attention_block(X, X, X, True))
         X = self.residual_connections[1](X, self.feed_forward_block)
         return X
 
