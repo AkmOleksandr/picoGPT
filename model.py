@@ -57,7 +57,7 @@ class FeedForwardBlock(nn.Module):
     def __init__(self, d_model, dropout):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(nn.Linear(d_model, d_model * 4)),
+            nn.Linear(d_model, d_model * 4),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(d_model * 4, d_model)
