@@ -176,7 +176,7 @@ def greedy_decode(model, tokenizer, seq_len, device):
         
         _, next_word = torch.max(probs, dim=1) # get the token with max prob
 
-        decoder_input = torch.cat([decoder_input, torch.empty(1, 1).fill_(next_word.item()).to(device)], dim=1) # append next_word (the predicted word) to decoder_input
+        decoder_input = torch.cat([decoder_input, torch.empty(1, 1).long().fill_(next_word.item()).to(device)], dim=1) # append next_word (the predicted word) to decoder_input
 
         if next_word == eos_idx: # if next token is <EOS> break
             break
