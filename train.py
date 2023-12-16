@@ -34,7 +34,7 @@ def get_data(config):
     train_dataset = load_dataset(config['dataset_name'], split="train", streaming=True)
     valid_dataset = load_dataset(config['dataset_name'], split="validation", streaming=True)
 
-    tokenizer = get_or_build_tokenizer(train_dataset)
+    tokenizer = get_or_build_tokenizer(config, train_dataset)
 
     # Extract independent sequences given limitations
     train_sequences = get_sequences(train_dataset, "train", config['limit_train_instances'], config['chunk_size'])
