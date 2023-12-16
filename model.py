@@ -149,7 +149,7 @@ class Transformer(nn.Module):
         # (batch, seq_len, vocab_size)
         return self.projection_layer(X)
     
-def build_transformer(vocab_size, seq_len, d_model=512, N=6, h=8, dropout=0.1, d_ff=2048) -> Transformer:
+def build_transformer(vocab_size, seq_len, d_model=512, N=6, h=8, dropout=0.1) -> Transformer:
 
     embed = InputEmbeddings(d_model, vocab_size)
     pos = PositionalEncoding(d_model, seq_len, dropout)
@@ -157,7 +157,7 @@ def build_transformer(vocab_size, seq_len, d_model=512, N=6, h=8, dropout=0.1, d
     decoder_blocks = []
     for _ in range(N):
         decoder_self_attention_block = MultiHeadAttentionBlock(d_model, h, dropout)
-        feed_forward_block = FeedForwardBlock(d_model, d_ff, dropout)
+        feed_forward_block = FeedForwardBlock(d_model, dropout)
         decoder_block = DecoderBlock(d_model, decoder_self_attention_block, feed_forward_block, dropout)
         decoder_blocks.append(decoder_block)
     
