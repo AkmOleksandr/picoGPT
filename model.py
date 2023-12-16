@@ -100,14 +100,14 @@ class MultiHeadAttentionBlock(nn.Module):
         return (attention_scores @ V)
     
 class DecoderBlock(nn.Module):
-    def __init__(self, num_features, self_attention_block, feed_forward_block, dropout):
+    def __init__(self, num_features, multi_attention_block, feed_forward_block, dropout):
         super().__init__()
-        self.self_attention_block = self_attention_block
+        self.multi_attention_block = multi_attention_block
         self.feed_forward_block = feed_forward_block
         self.residual_connections = nn.ModuleList([ResidualConnection(num_features, dropout) for _ in range(2)])
 
     def forward(self, X):
-        X = self.residual_connections[0](X, lambda X: self.self_attention_block(X, X, X, mask=True))
+        X = self.residual_connections[0](X, lambda X: self.multi_attention_block(X, X, X, mask=True, dropout=0.1))
         X = self.residual_connections[1](X, self.feed_forward_block)
         return X
 
