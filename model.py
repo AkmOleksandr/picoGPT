@@ -10,7 +10,7 @@ class InputEmbeddings(nn.Module):
         self.embedding = nn.Embedding(vocab_size, d_model) # initialize dimensions of embedding with number of unique units in vocabulary and size of embedding (size of vector to represent every word)
 
     def forward(self, X):
-        return self.embedding(X) * math.sqrt(self.d_model) # apply it on input data and multiply by sqrt of embedding size 
+        return self.embedding(X.long()) * math.sqrt(self.d_model) # apply it on input data and multiply by sqrt of embedding size 
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, seq_len, dropout):
