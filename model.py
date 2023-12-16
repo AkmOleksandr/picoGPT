@@ -149,7 +149,7 @@ class Transformer(nn.Module):
         # (batch, seq_len, vocab_size)
         return self.projection_layer(X)
     
-def build_transformer(vocab_size, seq_len, d_model=512, N=6, h=8, dropout=0.1) -> Transformer:
+def build_transformer(vocab_size, seq_len, d_model=512, N=6, h=8, dropout=0.15) -> Transformer:
 
     embed = InputEmbeddings(d_model, vocab_size)
     pos = PositionalEncoding(d_model, seq_len, dropout)
