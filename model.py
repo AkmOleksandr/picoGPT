@@ -88,8 +88,6 @@ class MultiHeadAttentionBlock(nn.Module):
         attention_scores = (Q @ K.transpose(-2, -1)) / math.sqrt(d_k)
 
         if mask:
-            # Convert boolean mask to a tensor and ensure it's on the same device as attention_scores
-            mask = mask.float().to(attention_scores.device)
             size = attention_scores.size(-1) # extract dimension of features
             lower_triangular_matrix = torch.tril(torch.ones((1, size, size), device=attention_scores.device)).type(torch.int)
             attention_scores.masked_fill_(lower_triangular_matrix == 0, -1e9) # fills upper triangle with -1e9 (to make them 0s after softmax) 
