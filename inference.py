@@ -5,7 +5,6 @@ from tokenizers import Tokenizer
 from datasets import load_dataset
 from dataset import LLMDataset
 import torch
-import sys
 
 def get_translation(config, sentence: str):
     # Define the device, tokenizers, and model
