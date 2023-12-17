@@ -29,11 +29,10 @@ def get_response(config, text):
                 torch.tensor(tokenized_text, dtype=torch.int64).to(device),
             ],
             dim=0,
-        )
+        ).unsqueeze(0)
     
     final_output = ""
     # Generate output word by word
-    print(decoder_input.size())
     while decoder_input.size(1) < config['seq_len']:
 
         decoder_output = model.decode(decoder_input)
