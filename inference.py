@@ -33,6 +33,7 @@ def get_response(config, text):
     
     final_output = ""
     # Generate output word by word
+    print(decoder_input.size())
     while decoder_input.size(1) < config['seq_len']:
 
         decoder_output = model.decode(decoder_input)
@@ -44,10 +45,10 @@ def get_response(config, text):
 
         next_word = tokenizer.decode([next_token.item()])
 
-        final_output += next_word + ' '
-
         # Break if <EOS> was predicted
         if next_word == "[EOS]":
             break
+
+        final_output += next_word + ' '
 
     return final_output.strip()
