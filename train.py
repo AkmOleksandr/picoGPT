@@ -121,7 +121,7 @@ def train_model(config):
         run_validation(model, valid_dataloader, tokenizer, config['seq_len'], device, lambda msg: batch_iterator.write(msg))
 
 @ torch.no_grad()
-def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, num_examples=5):
+def run_validation(model, valid_dataloader, tokenizer, seq_len, device, print_msg, num_examples=20):
     model.eval()
     count = 0
     losses = []
@@ -135,7 +135,7 @@ def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, 
     except:
         console_width = 80
 
-    for batch in validation_ds:
+    for batch in valid_dataloader:
         count += 1
         decoder_input = batch['decoder_input'].to(device) 
 
@@ -147,16 +147,15 @@ def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, 
         loss = loss_fn(proj_output.view(-1, tokenizer.get_vocab_size()), label.view(-1))
         losses.append(loss)
 
-        model_out = greedy_decode(model, tokenizer, seq_len, device) # prediction of the sentence in tokens
-
-        model_out_text = tokenizer.decode(model_out.detach().cpu().numpy()) # prediction of the model in words
-        
-        print_msg("-"*console_width)
-        print_msg(f"{f'Model says: ':>12}{model_out_text}")
-
         if count == num_examples:
             print_msg("-"*console_width)
             break
+
+    model_out = greedy_decode(model, tokenizer, seq_len, device)
+    model_out_text = tokenizer.decode(model_out.detach().cpu().numpy()) # a random sentence with the highest probability
+    
+    print_msg("-"*console_width)
+    print_msg(f"{f'Model says: ':>12}{model_out_text}")
 
     print_msg("Average validation loss:", torch.mean(torch.tensor(losses)))
     print_msg("Standard deviation of the validation loss:", torch.std(torch.tensor(losses)))
