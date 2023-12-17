@@ -20,7 +20,7 @@ def get_response(config, text):
     
     tokenizer_path = Path(config['tokenizer_file'])
     tokenizer = Tokenizer.from_file(str(tokenizer_path))
-    tokenized_text = tokenizer.encode(text)
+    tokenized_text = tokenizer.encode(text).ids
 
     sos_token = torch.tensor([tokenizer.token_to_id("[SOS]")], dtype=torch.int64).to(device)
     decoder_input = torch.cat( 
