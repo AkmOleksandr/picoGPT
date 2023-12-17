@@ -158,8 +158,8 @@ def run_validation(model, validation_ds, tokenizer, seq_len, device, print_msg, 
             print_msg("-"*console_width)
             break
 
-    print_msg("Average validation loss:", torch.mean(losses))
-    print_msg("Standard deviation of the validation loss:", torch.std(losses))
+    print_msg("Average validation loss:", torch.mean(torch.tensor(losses)))
+    print_msg("Standard deviation of the validation loss:", torch.std(torch.tensor(losses)))
 
 def greedy_decode(model, tokenizer, seq_len, device):
 
