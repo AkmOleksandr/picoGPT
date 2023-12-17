@@ -26,7 +26,7 @@ def get_response(config, text):
     decoder_input = torch.cat( 
             [
                 sos_token,
-                torch.tensor(tokenized_text, dtype=torch.int64),
+                torch.tensor(tokenized_text, dtype=torch.int64).to(device),
             ],
             dim=0,
         )
