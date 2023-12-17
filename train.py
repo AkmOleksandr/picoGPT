@@ -157,8 +157,8 @@ def run_validation(model, valid_dataloader, tokenizer, seq_len, device, print_ms
     print_msg("-" * console_width)
     print_msg(f"{f'Model says: ':>12}{model_out_text}")
 
-    print_msg("Average validation loss:", torch.mean(torch.tensor(losses)))
-    print_msg("Standard deviation of the validation loss:", torch.std(torch.tensor(losses)))
+    print("Average validation loss:", torch.mean(torch.tensor(losses)))
+    print("Standard deviation of the validation loss:", torch.std(torch.tensor(losses)))
 
 def greedy_decode(model, tokenizer, seq_len, device):
 
