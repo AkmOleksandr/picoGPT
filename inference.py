@@ -2,8 +2,6 @@ from pathlib import Path
 from config import latest_weights_file_path 
 from model import build_transformer
 from tokenizers import Tokenizer
-from datasets import load_dataset
-from dataset import LLMDataset
 import torch
 
 @torch.no_grad()
