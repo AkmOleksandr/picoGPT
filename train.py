@@ -154,7 +154,7 @@ def run_validation(model, valid_dataloader, tokenizer, seq_len, device, print_ms
     model_out = greedy_decode(model, tokenizer, seq_len, device)
     model_out_text = tokenizer.decode(model_out.detach().cpu().numpy()) # a random sentence with the highest probability
     
-    print_msg("-"*console_width)
+    print_msg("-" * console_width)
     print_msg(f"{f'Model says: ':>12}{model_out_text}")
 
     print_msg("Average validation loss:", torch.mean(torch.tensor(losses)))
