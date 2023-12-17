@@ -9,7 +9,7 @@ def get_response(config, text):
     # Define the device, tokenizers, and model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tokenizer = Tokenizer.from_file(str(Path(config['tokenizer_file'])))
-    model = build_transformer(tokenizer.get_vocab_size(), config["seq_len"], config['d_model']).to(device)
+    model = build_transformer(tokenizer.get_vocab_size(), config['seq_len'], config['d_model']).to(device)
     
     # Load the pretrained weights
     model_filename = latest_weights_file_path(config)
@@ -47,7 +47,7 @@ def get_response(config, text):
         final_output += next_word + ' '
 
         # Break if <EOS> was predicted
-        if next_word == tokenizer.token_to_id('[EOS]'):
+        if next_word == "[EOS]":
             break
 
     return final_output.strip()
