@@ -2,6 +2,7 @@ from itertools import islice
 import re
 import torch
 from torch.utils.data import Dataset
+
 class LLMDataset(Dataset):
 
     def __init__(self, dataset, tokenizer, seq_len): 
@@ -19,12 +20,11 @@ class LLMDataset(Dataset):
     def __len__(self):
         return len(self.dataset)
 
-    def __getitem__(self, idx): # logic of t and t+1
+    def __getitem__(self, idx):
         if idx < 0 or idx >= len(self.dataset):
             raise IndexError("Index out of range")
         # Get item from dataset with index idx
-        text = self.dataset[idx] # extract original pair
-        # Transform the text into tokens (list of numbers representing the sentence)
+        text = self.dataset[idx]
         tokenized_text = self.tokenizer.encode(text).ids 
         
         if len(tokenized_text) + 1 > self.seq_len:
