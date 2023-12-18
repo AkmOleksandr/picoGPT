@@ -99,7 +99,7 @@ def train_model(config):
 
             batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
 
-            loss.backward() # teaching model to predict next word at every position by minimizing the loss between data distribution across vocab_size of current token with the actual one-hot encoded label of the next token
+            loss.backward() # teaching model to predict next word at every position by minimizing the loss between data distribution across vocab_size predicted from the current token with the actual one-hot encoded label of the next token
 
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
