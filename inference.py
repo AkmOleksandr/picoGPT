@@ -42,7 +42,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
         
         next_token = _get_next_token(probs, temperature, top_k)
 
-        decoder_input = torch.cat([decoder_input, torch.empty(1, 1).long().fill_(next_token.item()).to(device)], dim=1)
+        decoder_input = torch.cat([decoder_input, torch.empty(1, 1).long().fill_(next_token).to(device)], dim=1)
 
         next_word = tokenizer.decode([next_token.item()])
 
@@ -56,7 +56,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
 
 def _get_next_token(probs, temperature, top_k):
     if temperature == 0:
-        _, next_token = torch.max(probs, dim=1)  # select token with the highest probability
+        _, next_token = torch.max(probs, dim=1).item()  # select token with the highest probability
         return next_token
     elif temperature > 0:
         scaled_probs = F.softmax(probs / temperature, dim=1)
