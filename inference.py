@@ -14,7 +14,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
     
     # Load the pretrained weights
     model_filename = latest_weights_file_path(config)
-    state = torch.load(model_filename)
+    state = torch.load(model_filename, map_location=device)
     model.load_state_dict(state['model_state_dict'])
 
     model.eval()
