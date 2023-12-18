@@ -44,7 +44,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
 
         decoder_input = torch.cat([decoder_input, torch.empty(1, 1).long().fill_(next_token).to(device)], dim=1)
 
-        next_word = tokenizer.decode([next_token.item()])
+        next_word = tokenizer.decode([next_token])
 
         # Break if <EOS> was predicted
         if next_word == "[EOS]":
