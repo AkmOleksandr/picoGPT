@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 
 @torch.no_grad()
-def get_response(config, text, temperature, top_k):
+def get_response(config, text, temperature=0.8, top_k=None):
     # Define the device, tokenizers, and model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tokenizer = Tokenizer.from_file(str(Path(config['tokenizer_file'])))
@@ -54,7 +54,7 @@ def get_response(config, text, temperature, top_k):
 
     return final_output.strip()
 
-def _get_next_token(probs, temperature=0.8, top_k=None):
+def _get_next_token(probs, temperature, top_k):
     if temperature == 0:
         _, next_token = torch.max(probs, dim=1)  # select token with the highest probability
         return next_token
