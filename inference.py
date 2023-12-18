@@ -57,7 +57,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
 def _get_next_token(probs, temperature, top_k):
     if temperature == 0:
         _, next_token = torch.max(probs, dim=1)  # select token with the highest probability
-        return next_token
+        return next_token.item()
     elif temperature > 0:
         scaled_probs = F.softmax(probs / temperature, dim=1)
         
@@ -66,7 +66,7 @@ def _get_next_token(probs, temperature, top_k):
             values, indices = torch.topk(scaled_probs, top_k, dim=1)
             scaled_probs = torch.zeros_like(scaled_probs).scatter(1, indices, values)
         
-        next_token = torch.multinomial(scaled_probs, 1).item()
-        return next_token
+        next_token = torch.multinomial(scaled_probs, 1)
+        return next_token.item()
     else:
         raise ValueError("Temperature must be a positive value.")
