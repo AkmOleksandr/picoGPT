@@ -56,7 +56,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
 
 def _get_next_token(probs, temperature, top_k):
     if temperature == 0:
-        _, next_token = torch.max(probs, dim=1).item()  # select token with the highest probability
+        _, next_token = torch.max(probs, dim=1)  # select token with the highest probability
         return next_token
     elif temperature > 0:
         scaled_probs = F.softmax(probs / temperature, dim=1)
