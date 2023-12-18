@@ -4,7 +4,6 @@ import torch
 from torch.utils.data import Dataset
 
 class LLMDataset(Dataset):
-
     def __init__(self, dataset, tokenizer, seq_len): 
         super().__init__()
 
