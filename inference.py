@@ -47,7 +47,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
         next_word = tokenizer.decode([next_token])
 
         # Break if <EOS> was predicted
-        if next_word == "[EOS]":
+        if next_token == tokenizer.token_to_id("[EOS]"):
             break
 
         final_output += next_word + ' '
