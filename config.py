@@ -8,7 +8,7 @@ def get_config():
         "seq_len": 128,
         "d_model": 512,
         "limit_train_instances": 10**5, # limit of data points for training
-        "limit_valid_instances": 300,   # limit of data points for validation
+        "limit_valid_instances": 500,   # limit of data points for validation
         "chunk_size": 50,              # size of every indpendent sequence in words
         "dataset_name": "allenai/peS2o",
         "model_folder": "weights",
