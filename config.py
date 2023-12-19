@@ -4,12 +4,12 @@ def get_config():
     return {
         "batch_size": 16,
         "num_epochs": 3,
-        "lr": 2e-3,
-        "seq_len": 256,
+        "lr": 1e-3,
+        "seq_len": 128,
         "d_model": 512,
         "limit_train_instances": 10**5, # limit of data points for training
         "limit_valid_instances": 300,   # limit of data points for validation
-        "chunk_size": 100,              # size of every indpendent sequence in words
+        "chunk_size": 50,              # size of every indpendent sequence in words
         "dataset_name": "allenai/peS2o",
         "model_folder": "weights",
         "model_basename": "lmodel_",
