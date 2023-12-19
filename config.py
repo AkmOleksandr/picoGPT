@@ -1,19 +1,15 @@
-'''
-Config for robust access to hyparameters, paths and specifics of the dataset
-'''
-
 from pathlib import Path
 
 def get_config():
     return {
         "batch_size": 16,
         "num_epochs": 3,
-        "lr": 10**-4,
-        "seq_len": 128,
+        "lr": 20**-4,
+        "seq_len": 256,
         "d_model": 512,
-        "limit_train_instances": 50000, # limit of data points for training
-        "limit_valid_instances": 200,   # limit of data points for validation
-        "chunk_size": 50,               # size of every indpendent sequence in words
+        "limit_train_instances": 10**5, # limit of data points for training
+        "limit_valid_instances": 300,   # limit of data points for validation
+        "chunk_size": 100,              # size of every indpendent sequence in words
         "dataset_name": "allenai/peS2o",
         "model_folder": "weights",
         "model_basename": "lmodel_",
