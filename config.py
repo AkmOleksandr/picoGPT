@@ -4,7 +4,7 @@ def get_config():
     return {
         "batch_size": 16,
         "num_epochs": 3,
-        "lr": 20**-4,
+        "lr": 2e-3,
         "seq_len": 256,
         "d_model": 512,
         "limit_train_instances": 10**5, # limit of data points for training
