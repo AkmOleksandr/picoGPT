@@ -3,7 +3,9 @@ Introduce pico (nano/1000) version of GPT built and trained from scratch on a fr
 ## Training and Performance
 The model was trained for 7 epochs, dataset and hyperparameters can be found in [config](https://github.com/AkmOleksandr/picoGPT/blob/main/config.py). Something worth mentioning is picoGPT's prediction for the following prompt: "People should know that AI" it predicted: "is a reliable tool for improving the quality of life.". Let's just hope that it tells us the truth😅.
 Besides the example mentioned above it was dared to expand a couple more prompts:
+
 <img width="687" alt="image" src="https://github.com/AkmOleksandr/picoGPT/assets/115898001/0e9a42e6-fc5a-427d-8aaa-5ab60a6570c5">
+
 All the examples can be also found in [Training_and_Inference](https://github.com/AkmOleksandr/picoGPT/blob/main/Training_and_Inference.ipynb) notebook.
 ## Download Model
 The model is uploaded on HuggingFace use the following face to access the link: [🤗](https://huggingface.co/AIisnotapig/picoGPT/tree/main).
