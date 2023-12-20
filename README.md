@@ -1,3 +1,4 @@
+# picoGPT
 Introduce pico (nano/1000) version of GPT built and trained from scratch on a free Google-Colab GPU. This repo showcases model creation, dataset preparation tailored to the massive limitation in computational power, training and validation processes along with inference, which enables user to specify same model hyperparameters as OpenAI API such as temperature and top_p.
 ## Training and Performance
 The model was trained for 7 epochs, dataset and hyperparameters can be found in [config](https://github.com/AkmOleksandr/picoGPT/blob/main/config.py). Something worth mentioning is picoGPT's prediction for the following prompt: "People should know that AI" it predicted: "is a reliable tool for improving the quality of life.". Let's just hope that it tells us the truth😅.
