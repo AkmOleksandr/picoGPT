@@ -5,7 +5,8 @@ The model was trained for 7 epochs, dataset and hyperparameters can be found in 
 
 Besides the example mentioned above it was dared to expand a couple more prompts:
 
-<img width="687" alt="image" src="https://github.com/AkmOleksandr/picoGPT/assets/115898001/0e9a42e6-fc5a-427d-8aaa-5ab60a6570c5">
+<img width="801" alt="image" src="https://github.com/AkmOleksandr/picoGPT/assets/115898001/a8aee6f9-9c3d-466b-a44c-9a90efb777f3">
+
 
 
 All the examples can be also found in [Training_and_Inference](https://github.com/AkmOleksandr/picoGPT/blob/main/Training_and_Inference.ipynb) notebook.
