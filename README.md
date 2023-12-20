@@ -11,6 +11,6 @@ Besides the example mentioned above it was dared to expand a couple more prompts
 
 
 
-All the examples can be also found in [Training_and_Inference](https://github.com/AkmOleksandr/picoGPT/blob/main/Training_and_Inference.ipynb) notebook.
+All the examples can also be found in [Training_and_Inference](https://github.com/AkmOleksandr/picoGPT/blob/main/Training_and_Inference.ipynb) notebook.
 ## Download Model
 The model is uploaded on HuggingFace use the following face to access it: [🤗](https://huggingface.co/AIisnotapig/picoGPT/tree/main).
