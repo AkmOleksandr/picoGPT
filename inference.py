@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 
 @torch.no_grad()
-def get_response(config, text, temperature=0.8, top_k=None):
+def get_response(config, text, temperature=0.8, top_p=None):
     # Define the device, tokenizers, and model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tokenizer = Tokenizer.from_file(str(Path(config['tokenizer_file'])))
@@ -40,7 +40,7 @@ def get_response(config, text, temperature=0.8, top_k=None):
 
         probs = model.project(decoder_output[:, -1]) # get probabilities for the next token
         
-        next_token = _get_next_token(probs, temperature, top_k)
+        next_token = _get_next_token(probs, temperature, top_p)
 
         decoder_input = torch.cat([decoder_input, torch.empty(1, 1).long().fill_(next_token).to(device)], dim=1)
 
@@ -54,16 +54,16 @@ def get_response(config, text, temperature=0.8, top_k=None):
 
     return final_output.strip()
 
-def _get_next_token(probs, temperature, top_k):
+def _get_next_token(probs, temperature, top_p):
     if temperature == 0:
         _, next_token = torch.max(probs, dim=1)  # select token with the highest probability
         return next_token.item()
     elif temperature > 0:
         scaled_probs = F.softmax(probs / temperature, dim=1)
         
-        if top_k is not None:
+        if top_p is not None:
             # Apply top-k filtering
-            values, indices = torch.topk(scaled_probs, top_k, dim=1)
+            values, indices = torch.topk(scaled_probs, top_p, dim=1)
             scaled_probs = torch.zeros_like(scaled_probs).scatter(1, indices, values)
         
         next_token = torch.multinomial(scaled_probs, 1)
