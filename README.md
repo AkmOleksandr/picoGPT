@@ -7,10 +7,6 @@ Besides the example mentioned above it was dared to expand a couple more prompts
 
 <img width="802" alt="image" src="https://github.com/AkmOleksandr/picoGPT/assets/115898001/0650f01e-b0d3-4b2f-bdbc-ff79907af7ce">
 
-
-
-
-
 All the examples can also be found in [Training_and_Inference](https://github.com/AkmOleksandr/picoGPT/blob/main/Training_and_Inference.ipynb) notebook.
 ## Download Model
 The model is uploaded on HuggingFace use the following face to access it: [🤗](https://huggingface.co/AIisnotapig/picoGPT/tree/main).
