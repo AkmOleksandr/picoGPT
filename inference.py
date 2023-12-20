@@ -62,7 +62,7 @@ def _get_next_token(probs, temperature, top_p):
         scaled_probs = F.softmax(probs / temperature, dim=1)
         
         if top_p is not None:
-            # Apply top-k filtering
+            # Apply top-p filtering
             values, indices = torch.topk(scaled_probs, top_p, dim=1)
             scaled_probs = torch.zeros_like(scaled_probs).scatter(1, indices, values)
         
